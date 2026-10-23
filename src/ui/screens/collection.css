@@ -1,0 +1,148 @@
+.collection,
+.subscreen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sub-top {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: calc(var(--safe-top) + 12px) 16px 10px;
+}
+
+.sub-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.sub-title .eyebrow {
+  font-size: 11px;
+}
+
+.sub-title b {
+  font-size: 26px;
+  font-weight: 400;
+}
+
+.col-controls {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px 10px;
+  flex-wrap: wrap;
+}
+
+.col-chips {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.col-chip {
+  padding: 7px 12px 6px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  white-space: nowrap;
+}
+
+.col-chip.on {
+  background: var(--gold);
+  color: #2a1c02;
+  border-color: transparent;
+}
+
+.col-sort {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 7px 10px;
+  font: 700 14px var(--font-ui);
+  letter-spacing: 0.08em;
+}
+
+.col-grid {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(30vw, 150px), 1fr));
+  gap: 14px;
+  padding: 6px 16px calc(var(--safe-bottom) + 24px);
+  align-content: start;
+}
+
+.col-item {
+  transition: transform 0.2s;
+}
+
+.col-item:hover {
+  transform: translateY(-6px) scale(1.03);
+}
+
+/* inspect modal */
+.inspect {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(3, 1, 6, 0.86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  overflow-y: auto;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: calc(var(--safe-top) + 60px) 16px calc(var(--safe-bottom) + 30px);
+}
+
+.inspect-body {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 1000px;
+  width: 100%;
+}
+
+.inspect-card {
+  width: min(78vw, 380px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  perspective: 1400px;
+}
+
+.inspect-hint {
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.inspect-info {
+  width: min(100%, 460px);
+}
+
+.inspect-close {
+  position: fixed;
+  top: calc(var(--safe-top) + 14px);
+  right: 16px;
+}

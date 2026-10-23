@@ -1,0 +1,97 @@
+.rules {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+}
+
+.rules-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 6px 18px calc(var(--safe-bottom) + 30px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rule {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.rule-n {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  color: #2a1c02;
+  background: var(--gold);
+  box-shadow:
+    0 0 0 2px #3a2a06,
+    0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.rule b {
+  font-weight: 900;
+  font-style: italic;
+  font-size: 22px;
+  letter-spacing: 0.08em;
+}
+
+.rule p,
+.rule-tag p,
+.rule-stats p,
+.rule-quick p {
+  margin: 4px 0 0;
+  font-weight: 500;
+  font-size: 17px;
+  line-height: 1.25;
+  opacity: 0.86;
+}
+
+.rule-tags {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.rule-tag {
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.rule-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.rule-stats > div {
+  padding: 10px;
+  text-align: center;
+  border-radius: 12px;
+}
+
+.rule-stats b {
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.rule-stats p {
+  font-size: 14px;
+}
+
+.rule-quick {
+  padding: 14px 16px;
+  border-color: #e9c766;
+  background: linear-gradient(90deg, rgba(90, 0, 16, 0.85), rgba(28, 4, 8, 0.85));
+}
+
+.rule-quick b {
+  color: var(--gold-text);
+  letter-spacing: 0.2em;
+  font-weight: 800;
+}
