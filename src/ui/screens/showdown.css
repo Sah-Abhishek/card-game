@@ -623,3 +623,22 @@
 .sd-compare thead th.called {
   color: #fff;
 }
+
+.sd-rules-link {
+  background: none;
+  border: 0;
+  color: var(--gold-text);
+  font: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  cursor: pointer;
+  padding: 6px;
+}
+
+.sd-rules-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}

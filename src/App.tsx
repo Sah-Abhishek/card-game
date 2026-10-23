@@ -4,7 +4,7 @@ import { ThemeContext } from './ui/theme';
 import { DEFAULT_THEME } from './themes';
 import { Home } from './ui/screens/Home';
 import { Collection } from './ui/screens/Collection';
-import { HowToPlay } from './ui/screens/HowToPlay';
+import { HowToPlay, type RulesTab } from './ui/screens/HowToPlay';
 import { RosterBuilder } from './ui/screens/RosterBuilder';
 import { MatchScreen } from './ui/screens/MatchScreen';
 import { ShowdownSetup } from './ui/screens/ShowdownSetup';
@@ -14,7 +14,7 @@ import { DECK_MODES, type DeckMode } from './ui/modes';
 export type Route =
   | { name: 'home' }
   | { name: 'collection' }
-  | { name: 'rules' }
+  | { name: 'rules'; tab?: RulesTab }
   | { name: 'roster' }
   | { name: 'match'; roster: string[] }
   | { name: 'showdownSetup'; mode: DeckMode }
@@ -39,7 +39,7 @@ export default function App() {
       screen = <Collection nav={nav} />;
       break;
     case 'rules':
-      screen = <HowToPlay nav={nav} />;
+      screen = <HowToPlay nav={nav} tab={route.tab} />;
       break;
     case 'roster':
       screen = <RosterBuilder nav={nav} />;

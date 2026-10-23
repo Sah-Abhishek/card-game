@@ -20,11 +20,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* centre when it fits; scroll from the top when it doesn't (small phones) */
+  justify-content: safe center;
   gap: clamp(10px, 2.4vh, 22px);
-  padding: 0 18px;
+  padding: 8px 18px 0;
   z-index: 1;
   min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.home-body > * {
+  flex-shrink: 0; /* scroll instead of squashing the card fan */
 }
 
 .home-logo {
@@ -132,4 +141,66 @@
   opacity: 0.4;
   padding: 8px 12px calc(var(--safe-bottom) + 10px);
   z-index: 1;
+}
+
+/* ---------- phones ---------- */
+@media (max-width: 520px), (max-height: 760px) {
+  .home-top {
+    padding-top: calc(var(--safe-top) + 10px);
+  }
+
+  .home-body {
+    gap: 12px;
+  }
+
+  .home-word {
+    font-size: clamp(30px, 5.6vh, 46px);
+  }
+
+  .home-fan {
+    width: clamp(84px, 13vh, 128px);
+    margin: 4px 0 0;
+  }
+
+  .home-themes {
+    gap: 6px;
+    margin-top: 0;
+  }
+
+  .home-theme {
+    gap: 6px;
+    padding: 5px 10px 4px;
+    font-size: 11px;
+  }
+
+  .home-theme small {
+    display: none;
+  }
+
+  .home-menu {
+    gap: 8px;
+  }
+
+  .home-play {
+    padding: 10px 16px 9px;
+  }
+
+  .home-play span {
+    font-size: 22px;
+  }
+
+  .home-play small {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+
+  .home-row .btn {
+    font-size: 14px;
+    padding: 10px 8px 9px;
+  }
+
+  .home-legal {
+    font-size: 10px;
+    padding-top: 4px;
+  }
 }

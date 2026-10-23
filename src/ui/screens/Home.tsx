@@ -71,7 +71,7 @@ export function Home({ nav }: { nav: Nav }) {
           </button>
           <button className="btn btn-gold home-play" onClick={go(() => nav({ name: 'showdownSetup', mode: 'trump' }))}>
             <span>Trump Cards</span>
-            <small>52 cards · Height, weight, chest, biceps…</small>
+            <small>52 cards · Body stats</small>
           </button>
           <div className="home-row">
             <button className="btn btn-ghost" onClick={go(() => nav({ name: 'collection' }))}>
@@ -82,8 +82,8 @@ export function Home({ nav }: { nav: Nav }) {
             </button>
           </div>
         </motion.nav>
+        <footer className="home-legal">Personal fan project · not affiliated with WWE · Superstar names & images © WWE</footer>
       </div>
-      <footer className="home-legal">Personal fan project · not affiliated with WWE · Superstar names & images © WWE</footer>
     </div>
   );
 }

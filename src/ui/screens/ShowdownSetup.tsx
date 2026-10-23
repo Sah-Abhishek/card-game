@@ -70,6 +70,9 @@ export function ShowdownSetup({ nav, mode }: { nav: Nav; mode: DeckMode }) {
         >
           Shuffle up & deal
         </button>
+        <button className="sd-rules-link" onClick={() => nav({ name: 'rules', tab: mode })}>
+          How to play {def.title.toLowerCase()} ›
+        </button>
       </div>
     </div>
   );
