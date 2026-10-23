@@ -66,7 +66,7 @@ export function CardInfo({ card }: { card: CardDef }) {
           ))}
           <div className="info-tag">
             <span className="tag" style={{ background: '#ffd23d', color: '#2a1c02' }}>
-              FINISHER
+              {theme.copy.finisher.toUpperCase()}
             </span>
             <p>{card.finisher}</p>
           </div>

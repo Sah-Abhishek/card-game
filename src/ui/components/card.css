@@ -79,6 +79,11 @@
   filter: contrast(1.08) saturate(1.05) drop-shadow(0 1cqw 2cqw rgba(0, 0, 0, 0.5));
 }
 
+.card-photo.portrait {
+  object-position: 50% 10%;
+  filter: contrast(1.04) saturate(1.08);
+}
+
 .card-spot {
   position: absolute;
   inset: 0;
@@ -210,10 +215,17 @@
 }
 
 /* header */
-.card-league {
+.card-brand {
   position: absolute;
   left: 2.93cqw;
   top: 2.93cqw;
+  display: flex;
+  align-items: flex-start;
+  gap: 2cqw;
+}
+
+.card-league {
+  flex: none;
   padding: 0.8cqw 1.87cqw 0.53cqw;
   border-radius: 0.8cqw;
   background: linear-gradient(180deg, #ff1a35, #a00014);
@@ -226,9 +238,7 @@
 }
 
 .card-set {
-  position: absolute;
-  left: 21.6cqw;
-  top: 3.6cqw;
+  margin-top: 0.67cqw;
   display: flex;
   flex-direction: column;
   gap: 0.27cqw;

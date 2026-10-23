@@ -29,7 +29,10 @@ export function RosterBuilder({ nav }: { nav: Nav }) {
   const pct = Math.min(100, (check.totalOvr / theme.match.ovrCap) * 100);
   const synergyTag = theme.tags.find((t) => t.synergy);
   const brandCounts = synergyTag
-    ? Object.keys(synergyTag.values).map((v) => [v, picked.filter((c) => c.tags[synergyTag.key] === v).length] as const)
+    ? Object.keys(synergyTag.values)
+        .map((v) => [v, picked.filter((c) => c.tags[synergyTag.key] === v).length] as const)
+        // a long list (e.g. 12 anime) only shows the ones already in the roster
+        .filter(([, n], _, all) => all.length <= 4 || n > 0)
     : [];
 
   const toggle = (c: CardDef) => {
@@ -122,7 +125,7 @@ export function RosterBuilder({ nav }: { nav: Nav }) {
               </span>
               {brandCounts.map(([v, n]) => (
                 <span key={v} className={n >= (synergyTag?.synergy?.count ?? 99) ? 'hot' : ''}>
-                  {v} ×{n}
+                  {synergyTag!.values[v].label} ×{n}
                   {n >= (synergyTag?.synergy?.count ?? 99) && ` · +${synergyTag!.synergy!.bonus} ALL STATS`}
                 </span>
               ))}

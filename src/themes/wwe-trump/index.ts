@@ -1,5 +1,4 @@
-import type { CardDef, StatKey, ThemeDef } from '../../engine/types';
-import { rarityOf } from '../../engine/roster';
+import { trumpTheme } from '../trump';
 import { wweTheme } from '../wwe';
 
 // Personal fan project. Superstar names and promo images are (c) WWE.
@@ -7,9 +6,8 @@ import { wweTheme } from '../wwe';
 // fan estimates for the game, not official numbers.
 
 // height cm, weight kg, chest in, biceps in, titles, years in WWE, finisher rating
-type Body = [number, number, number, number, number, number, number];
 
-const BODY: Record<string, Body> = {
+const BODY: Record<string, number[]> = {
   'the-rock': [196, 118, 50, 20, 10, 18, 95],
   undertaker: [208, 140, 52, 21, 7, 30, 97],
   'stone-cold': [188, 114, 50, 19, 10, 10, 98],
@@ -64,43 +62,9 @@ const BODY: Record<string, Body> = {
   'rob-van-dam': [185, 107, 44, 17, 8, 9, 89],
 };
 
-const KEYS: StatKey[] = ['hgt', 'wgt', 'chest', 'bicep', 'titles', 'yrs', 'fin'];
-
-// same 52 superstars as the main set, re-rated on body stats
-const base = wweTheme.cards.map(({ id, name, nickname, finisher, palette, image, bio }) => ({ id, name, nickname, finisher, palette, image, bio }));
-
-const statsOf = (id: string) => Object.fromEntries(KEYS.map((k, i) => [k, BODY[id][i]]));
-
-// OVR = how often this card's stats beat the rest of the deck, scaled to 60–99
-const pctile = (id: string) => {
-  const mine = statsOf(id);
-  const others = base.filter((c) => c.id !== id).map((c) => statsOf(c.id));
-  const beats = KEYS.reduce((sum, k) => sum + others.filter((o) => mine[k] > o[k]).length / others.length, 0);
-  return beats / KEYS.length;
-};
-
-const cards: CardDef[] = base.map((c, i) => {
-  const ovr = Math.round(60 + 39 * pctile(c.id));
-  return {
-    ...c,
-    number: i + 1,
-    stats: statsOf(c.id),
-    tags: {},
-    ability: { name: c.finisher, text: '', effect: { kind: 'finisherDamage', amount: 0 } }, // unused in trump play
-    ovr,
-    rarity: rarityOf(ovr),
-  };
-});
-
-export const wweTrumpTheme: ThemeDef = {
-  ...wweTheme,
-  id: 'wwe-trump',
-  name: 'WWE TRUMP CARDS',
-  tagline: '52 SUPERSTARS · BODY STATS',
-  setName: 'TRUMP CARDS',
-  setYear: 'SERIES 1 · 2026',
-  printRun: cards.length,
-  stats: [
+export const wweTrumpTheme = trumpTheme(
+  wweTheme,
+  [
     { key: 'hgt', short: 'HGT', label: 'HEIGHT', unit: 'cm', meaning: 'Billed height in centimetres.' },
     { key: 'wgt', short: 'WGT', label: 'WEIGHT', unit: 'kg', meaning: 'Billed weight in kilograms.' },
     { key: 'chest', short: 'CHEST', label: 'CHEST', unit: 'in', meaning: 'Chest size in inches.' },
@@ -109,7 +73,6 @@ export const wweTrumpTheme: ThemeDef = {
     { key: 'yrs', short: 'YRS', label: 'EXPERIENCE', unit: 'yrs', meaning: 'Years wrestling in WWE.' },
     { key: 'fin', short: 'FIN', label: 'FINISHER POWER', meaning: 'How devastating the finisher is, out of 100.' },
   ],
-  initiativeStat: 'hgt',
-  tags: [],
-  cards,
-};
+  BODY,
+  { id: 'wwe-trump', name: 'WWE TRUMP CARDS', tagline: '52 SUPERSTARS · BODY STATS', setName: 'TRUMP CARDS' },
+);

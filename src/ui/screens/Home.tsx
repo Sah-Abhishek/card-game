@@ -2,15 +2,18 @@ import { motion } from 'framer-motion';
 import type { Nav } from '../../App';
 import { Arena, MuteButton } from '../components/Arena';
 import { GameCard } from '../components/Card';
-import { THEMES } from '../../themes';
-import { cardById, useTheme } from '../theme';
+import { UNIVERSES } from '../../themes';
+import { cardById, useTheme, useUniverse } from '../theme';
 import { sfx } from '../sfx';
 import './home.css';
 
-const FEATURED = ['undertaker', 'the-rock', 'stone-cold'];
-
 export function Home({ nav }: { nav: Nav }) {
   const theme = useTheme();
+  const { universe, setUniverse } = useUniverse();
+  const trumpHint = universe.trump.stats
+    .slice(0, 2)
+    .map((s) => s.label.toLowerCase())
+    .join(', ');
   const go = (fn: () => void) => () => {
     sfx.select();
     fn();
@@ -30,9 +33,9 @@ export function Home({ nav }: { nav: Nav }) {
         </motion.div>
 
         <div className="home-fan">
-          {FEATURED.map((id, i) => (
+          {universe.featured.map((id, i) => (
             <motion.div
-              key={id}
+              key={`${universe.id}-${id}`}
               className="home-fan-card"
               initial={{ y: 200, rotate: 0, opacity: 0 }}
               animate={{ y: i === 1 ? -14 : 0, rotate: (i - 1) * 12, x: (i - 1) * 62, opacity: 1 }}
@@ -46,17 +49,28 @@ export function Home({ nav }: { nav: Nav }) {
         </div>
 
         <div className="home-themes">
-          {THEMES.map((t) => (
-            <div key={t.id} className={`home-theme ${t.theme ? 'live' : 'locked'}`} style={{ ['--accent' as string]: t.accent }}>
-              <b>{t.name}</b>
-              <small>{t.blurb}</small>
-              {!t.theme && (
+          {UNIVERSES.map((u) => (
+            <button
+              key={u.id}
+              className={`home-theme ${u.theme ? 'live' : 'locked'} ${u.id === universe.id ? 'on' : ''}`}
+              style={{ ['--accent' as string]: u.accent }}
+              disabled={!u.theme}
+              aria-pressed={u.id === universe.id}
+              onClick={() => {
+                if (u.id === universe.id) return;
+                sfx.flick();
+                setUniverse(u.id);
+              }}
+            >
+              <b>{u.name}</b>
+              <small>{u.blurb}</small>
+              {!u.theme && (
                 <svg width="12" height="14" viewBox="0 0 14 16">
                   <rect x="1" y="7" width="12" height="9" rx="2" fill="currentColor" />
                   <path d="M4 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="2" fill="none" />
                 </svg>
               )}
-            </div>
+            </button>
           ))}
         </div>
 
@@ -71,7 +85,9 @@ export function Home({ nav }: { nav: Nav }) {
           </button>
           <button className="btn btn-gold home-play" onClick={go(() => nav({ name: 'showdownSetup', mode: 'trump' }))}>
             <span>Trump Cards</span>
-            <small>52 cards · Body stats</small>
+            <small>
+              {universe.trump.cards.length} cards · {trumpHint}…
+            </small>
           </button>
           <div className="home-row">
             <button className="btn btn-ghost" onClick={go(() => nav({ name: 'collection' }))}>
@@ -82,7 +98,7 @@ export function Home({ nav }: { nav: Nav }) {
             </button>
           </div>
         </motion.nav>
-        <footer className="home-legal">Personal fan project · not affiliated with WWE · Superstar names & images © WWE</footer>
+        <footer className="home-legal">{universe.legal}</footer>
       </div>
     </div>
   );

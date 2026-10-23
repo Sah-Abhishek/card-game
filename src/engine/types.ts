@@ -89,6 +89,8 @@ export interface ThemeDef {
   setName: string;
   setYear: string;
   printRun: number;
+  /** 'cutout' = transparent promo cut-outs (default); 'portrait' = rectangular character art */
+  art?: 'cutout' | 'portrait';
   stats: StatDef[];
   /** stat that decides who attacks first in a bout; not callable in a Match */
   initiativeStat: StatKey;

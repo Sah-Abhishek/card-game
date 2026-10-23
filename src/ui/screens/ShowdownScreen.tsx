@@ -9,12 +9,11 @@ import { Arena, MuteButton } from '../components/Arena';
 import { CardBack, GameCard } from '../components/Card';
 import { ShuffleDeck } from '../components/ShuffleDeck';
 import { Banner, type BannerData, Confetti } from '../components/Overlays';
-import { cardById, useTheme } from '../theme';
+import { cardById, useTheme, useUniverse } from '../theme';
 import { sfx } from '../sfx';
 import { DECK_MODES, type DeckMode } from '../modes';
 import './showdown.css';
 
-const BOT_NAMES = ['DEADMAN_FAN', 'RATTLESNAKE316', 'CENATION', 'HBK_SWEETCHIN', 'MASKED619', 'TRIBAL_CHIEF', 'NATURE_BOY'];
 const COLORS = ['#d0021b', '#7a2ad0', '#4a4a52', '#1fa040', '#c02a8a', '#2a6ae0'];
 
 type Phase = 'shuffle' | 'deal' | 'call' | 'reveal' | 'collect' | 'over';
@@ -45,9 +44,10 @@ function seatPositions(n: number): Pos[] {
 export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckMode; opponents: number }) {
   const theme = useTheme();
   const def = DECK_MODES[mode];
+  const { universe } = useUniverse();
   const [rng] = useState(() => new Rng(randomSeed()));
   const [game, setGame] = useState<ShowdownState>(() => {
-    const names = rng.shuffle(BOT_NAMES).slice(0, opponents);
+    const names = rng.shuffle(universe.bots).slice(0, opponents);
     return createShowdown(
       theme,
       [{ name: 'YOU', human: true }, ...names.map((name) => ({ name, human: false }))],

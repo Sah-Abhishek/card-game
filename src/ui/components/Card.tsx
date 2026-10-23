@@ -54,7 +54,7 @@ export function CardFront({ card, focusStat, interactive }: FrontProps) {
         <div className="card-hair" />
         <div className="card-art">
           <div className="card-spot" />
-          <img className="card-photo" src={card.image} alt={card.name} draggable={false} loading="lazy" />
+          <img className={`card-photo ${theme.art ?? 'cutout'}`} src={card.image} alt={card.name} draggable={false} loading="lazy" />
           <div className="card-tint" />
           <div className="card-headfade" />
           <div className="card-fade" />
@@ -78,10 +78,12 @@ export function CardFront({ card, focusStat, interactive }: FrontProps) {
           <div className="card-name">{card.name}</div>
           <div className="card-nick">“{card.nickname}”</div>
 
-          <div className="card-league">{theme.league}</div>
-          <div className="card-set">
-            <b>{theme.setName}</b>
-            <span>{theme.setYear}</span>
+          <div className="card-brand">
+            <div className="card-league">{theme.league}</div>
+            <div className="card-set">
+              <b>{theme.setName}</b>
+              <span>{theme.setYear}</span>
+            </div>
           </div>
           <div className={`card-rarity ${card.rarity}`}>★ {RARITY_LABEL[card.rarity]}</div>
           <div className="card-number">
@@ -112,7 +114,7 @@ export function CardFront({ card, focusStat, interactive }: FrontProps) {
             ))}
           </div>
           <div className="card-finisher">
-            <small>FINISHER</small>
+            <small>{theme.copy.finisher.toUpperCase()}</small>
             <svg width="1.9cqw" height="2.7cqw" viewBox="0 0 14 20" aria-hidden>
               <path d="M8 0 L0 11 L6 11 L5 20 L14 7 L8 7 Z" fill="#ffd23d" />
             </svg>

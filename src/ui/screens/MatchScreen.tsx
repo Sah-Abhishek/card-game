@@ -29,11 +29,10 @@ import { aiChooseAction, aiPickSuperstar } from '../../engine/ai';
 import { Arena, HpBar, MuteButton, Pips } from '../components/Arena';
 import { GameCard } from '../components/Card';
 import { Banner, type BannerData, Confetti, FinisherCinematic, PinCount, type Popup, Popups, RevealBurst } from '../components/Overlays';
-import { cardById, useTheme } from '../theme';
+import { cardById, useTheme, useUniverse } from '../theme';
 import { sfx } from '../sfx';
 import './match.css';
 
-const RIVALS = ['RIVAL_99', 'DEADMAN_FAN', 'RATTLESNAKE316', 'CENATION', 'HBK_SWEETCHIN', 'MASKED619', 'TRIBAL_CHIEF'];
 const TURN_SECONDS = 20;
 
 type Pin = { count: number; result: 'kickout' | 'pinned' | 'sitsup' | null } | null;
@@ -42,11 +41,12 @@ class Cancelled extends Error {}
 
 export function MatchScreen({ nav, roster }: { nav: Nav; roster: string[] }) {
   const theme = useTheme();
+  const { universe } = useUniverse();
   const [setup] = useState(() => {
     const seed = randomSeed();
     const rng = new Rng(seed);
     const away = autoRoster(theme, rng, roster).map((c) => c.id);
-    return { seed, rng, rival: rng.pick(RIVALS), level: 20 + rng.int(15), away };
+    return { seed, rng, rival: rng.pick(universe.bots), level: 20 + rng.int(15), away };
   });
   const rng = setup.rng;
   const [game, setGame] = useState<MatchState>(() => createMatch('YOU', roster, setup.rival, setup.away, setup.seed));

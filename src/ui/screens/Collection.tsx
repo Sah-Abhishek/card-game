@@ -49,7 +49,7 @@ export function Collection({ nav }: { nav: Nav }) {
                 setFilter(f);
               }}
             >
-              {f}
+              {brandTag.values[f]?.label ?? f}
             </button>
           ))}
         </div>

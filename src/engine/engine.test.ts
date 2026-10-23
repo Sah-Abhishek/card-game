@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { wweTheme as T } from '../themes/wwe';
 import { wweTrumpTheme as W } from '../themes/wwe-trump';
+import { animeTheme as A } from '../themes/anime';
+import { animeTrumpTheme as AT } from '../themes/anime-trump';
 import { Rng } from './rng';
 import { autoRoster, checkRoster } from './roster';
 import { call, createMatch, finisher, pick, type MatchState, type Side, other } from './match';
@@ -211,5 +213,54 @@ describe('trump cards (52-card deck)', () => {
       }
     }
     expect(sweeps / games).toBeGreaterThan(0.9);
+  });
+});
+
+describe('anime clash', () => {
+  const art = import.meta.glob('/public/cards/anime/*.webp');
+
+  it('has 52 unique characters with art, tags and stats', () => {
+    expect(A.cards).toHaveLength(52);
+    expect(new Set(A.cards.map((c) => c.id)).size).toBe(52);
+    for (const c of A.cards) {
+      expect(`/public/cards/anime/${c.id}.webp` in art, c.id).toBe(true);
+      for (const t of A.tags) expect(t.values[c.tags[t.key]], `${c.id}.${t.key}`).toBeDefined();
+      for (const st of A.stats) expect(c.stats[st.key]).toBeGreaterThan(0);
+    }
+  });
+
+  it('auto rosters respect the cap and legendary limit', () => {
+    for (let seed = 0; seed < 200; seed++) expect(checkRoster(A, autoRoster(A, new Rng(seed))).ok).toBe(true);
+  });
+
+  it('cpu vs cpu matches always finish', () => {
+    for (let seed = 1; seed <= 100; seed++) {
+      const rng = new Rng(seed);
+      const home = autoRoster(A, rng).map((c) => c.id);
+      const away = autoRoster(A, rng, home).map((c) => c.id);
+      let s = createMatch('A', home, 'B', away, seed);
+      for (let step = 0; step < 500 && s.phase !== 'matchOver'; step++) {
+        if (s.phase === 'pick') {
+          for (const side of ['home', 'away'] as Side[])
+            if (!s[side].active && !s[side].pending && s.phase === 'pick') s = pick(A, s, side, aiPickSuperstar(A, s, side, rng));
+          continue;
+        }
+        const act = aiChooseAction(A, s, s.attacker, rng);
+        s = act.type === 'finisher' ? finisher(A, s, s.attacker) : call(A, s, s.attacker, act.stat, { cheat: act.cheat });
+      }
+      expect(s.phase).toBe('matchOver');
+    }
+  });
+
+  it('trump deck re-rates every character and games end with one player holding all 52', () => {
+    expect(AT.cards).toHaveLength(52);
+    let sweeps = 0;
+    for (let seed = 1; seed <= 60; seed++) {
+      const rng = new Rng(seed);
+      let s = createShowdown(AT, [{ name: 'A', human: true }, { name: 'B', human: false }], seed, { maxRounds: 1000, wonPile: true });
+      while (!s.over) s = playRound(AT, s, aiShowdownCall(AT, s, s.caller, rng));
+      if (s.winner !== null && held(s.players[s.winner]) === 52) sweeps++;
+    }
+    expect(sweeps / 60).toBeGreaterThan(0.9);
   });
 });

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import type { Nav } from '../../App';
 import type { ThemeDef } from '../../engine/types';
 import { Arena, BackButton, MuteButton } from '../components/Arena';
-import { useTheme } from '../theme';
+import { useTheme, useUniverse } from '../theme';
 import { DECK_MODES, type DeckModeDef } from '../modes';
 import { sfx } from '../sfx';
 import './rules.css';
@@ -23,8 +23,8 @@ const list = (items: string[]) => items.join(', ').replace(/, ([^,]*)$/, ' or $1
 const playerRange = (def: DeckModeDef) => `${Math.min(...def.opponents) + 1}–${Math.max(...def.opponents) + 1}`;
 
 /** "26, 17 or 13 cards each" for every table size the mode allows */
-const handSizes = (def: DeckModeDef) =>
-  list(def.opponents.map((o) => String(Math.floor(def.theme.cards.length / (o + 1))))) + ' cards each';
+const handSizes = (def: DeckModeDef, theme: ThemeDef) =>
+  list(def.opponents.map((o) => String(Math.floor(theme.cards.length / (o + 1))))) + ' cards each';
 
 function matchSteps(theme: ThemeDef): Step[] {
   const m = theme.match;
@@ -41,10 +41,10 @@ function matchSteps(theme: ThemeDef): Step[] {
   ];
 }
 
-function showdownSteps(def: DeckModeDef): Step[] {
-  const stats = def.theme.stats.map((s) => s.short);
+function showdownSteps(def: DeckModeDef, theme: ThemeDef): Step[] {
+  const stats = theme.stats.map((s) => s.short);
   return [
-    ['SHUFFLE & DEAL', `${playerRange(def)} players — you against CPU bots. All ${def.theme.cards.length} cards are shuffled and dealt out evenly. Leftover cards start in the pot.`],
+    ['SHUFFLE & DEAL', `${playerRange(def)} players — you against CPU bots. All ${theme.cards.length} cards are shuffled and dealt out evenly. Leftover cards start in the pot.`],
     ['TOP CARD ONLY', 'Keep your pile face-down. You only ever see and play the card on top — no picking.'],
     ['CALL A STAT', `The caller picks ${list(stats)} from their top card. Whoever calls first is random.`],
     ['FLIP & COMPARE', 'Everyone flips their top card. Highest number for that stat takes every card on the table and tucks them under their pile. The winner calls next.'],
@@ -53,11 +53,11 @@ function showdownSteps(def: DeckModeDef): Step[] {
   ];
 }
 
-function trumpSteps(def: DeckModeDef): Step[] {
-  const stats = def.theme.stats.map((s) => s.label.toLowerCase());
-  const n = def.theme.cards.length;
+function trumpSteps(def: DeckModeDef, theme: ThemeDef): Step[] {
+  const stats = theme.stats.map((s) => s.label.toLowerCase());
+  const n = theme.cards.length;
   return [
-    ['SHUFFLE & DEAL', `${playerRange(def)} players — you against CPU bots. The ${n}-card deck is shuffled and dealt out evenly: ${handSizes(def)}. Any leftover card starts in the pot.`],
+    ['SHUFFLE & DEAL', `${playerRange(def)} players — you against CPU bots. The ${n}-card deck is shuffled and dealt out evenly: ${handSizes(def, theme)}. Any leftover card starts in the pot.`],
     ['TOP CARD ONLY', "Your deck stays face-down. You can only play the card on top — you can't choose a different one."],
     ['CALL A STAT', `The caller reads one stat off their top card: ${list(stats)}. Whoever calls first is random.`],
     ['FLIP & COMPARE', 'Everyone flips their top card and the called stat is compared. Higher number wins every card on the table, and the winner calls next.'],
@@ -71,16 +71,15 @@ function trumpSteps(def: DeckModeDef): Step[] {
 const TIPS: Record<RulesTab, string> = {
   match: "Save Momentum for a Finisher when they're low — or for a kick-out when you are.",
   showdown: 'Call the stat your card is best at compared with the whole deck, not just its highest number.',
-  trump: 'A giant wins on height and weight, but a veteran can steal it on titles or years. Call where your card stands out.',
+  trump: 'The biggest card wins on height, but a smaller one can steal it on brains, charm or experience. Call where your card stands out.',
 };
 
 export function HowToPlay({ nav, tab: initial = 'match' }: { nav: Nav; tab?: RulesTab }) {
-  const wwe = useTheme();
+  const main = useTheme();
+  const { universe } = useUniverse();
   const [tab, setTab] = useState<RulesTab>(initial);
-  const showdown = DECK_MODES.showdown;
-  const trump = DECK_MODES.trump;
-  const steps = tab === 'match' ? matchSteps(wwe) : tab === 'showdown' ? showdownSteps(showdown) : trumpSteps(trump);
-  const statTheme = tab === 'trump' ? trump.theme : wwe;
+  const steps = tab === 'match' ? matchSteps(main) : tab === 'showdown' ? showdownSteps(DECK_MODES.showdown, main) : trumpSteps(DECK_MODES.trump, universe.trump);
+  const statTheme = tab === 'trump' ? universe.trump : main;
 
   return (
     <div className="subscreen">
@@ -88,7 +87,7 @@ export function HowToPlay({ nav, tab: initial = 'match' }: { nav: Nav; tab?: Rul
       <header className="sub-top">
         <BackButton onClick={() => nav({ name: 'home' })} />
         <div className="sub-title">
-          <span className="eyebrow">All Game Modes</span>
+          <span className="eyebrow">{universe.name}</span>
           <b className="display">HOW TO PLAY</b>
         </div>
         <MuteButton />
@@ -127,7 +126,7 @@ export function HowToPlay({ nav, tab: initial = 'match' }: { nav: Nav; tab?: Rul
             <>
               <div className="section-title">TAG RULES</div>
               <div className="rule-tags">
-                {wwe.tags.flatMap((t) =>
+                {main.tags.flatMap((t) =>
                   Object.values(t.values)
                     .filter((v) => v.ruleText)
                     .map((v) => (
@@ -139,7 +138,7 @@ export function HowToPlay({ nav, tab: initial = 'match' }: { nav: Nav; tab?: Rul
                       </div>
                     )),
                 )}
-                {wwe.tags
+                {main.tags
                   .filter((t) => t.synergy)
                   .map((t) => (
                     <div key={t.key} className="rule-tag panel">

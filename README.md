@@ -1,7 +1,11 @@
-# Arena Legends — WWE
+# Arena Legends
 
-A trading card game with a theme-agnostic engine. WWE Legends is the first theme.
-Personal, non-commercial fan project — superstar names and promo images are © WWE.
+A trading card game with a theme-agnostic engine. Two card sets so far, switchable on the home
+screen: **WWE Legends** and **Anime Clash** (Jujutsu Kaisen, Attack on Titan, Oregairu, Chunibyo,
+Horimiya, Toradora!, Frieren, My Dress-Up Darling, Anohana, Grand Blue, Wotakoi, Silver Spoon).
+Every mode works with either set.
+Personal, non-commercial fan project — WWE names and promo images are © WWE; anime characters and
+art are © their creators.
 
 ## Run
 
@@ -35,10 +39,16 @@ src/engine/        pure TypeScript rules — no React
   roster.ts        OVR, rarity, roster cap, auto-pick
 src/themes/        one folder per universe
   wwe/index.ts     52 superstars, stats, abilities, tag rules
-  index.ts         theme registry (locked themes show as "coming soon")
+  wwe-trump/       the same superstars on body stats for Trump Cards
+  anime/index.ts   52 anime characters (Match/Showdown stats, HERO/ROGUE, series synergy)
+  anime-trump/     the same characters on trump stats (height, age, strength, …)
+  kit.ts           shared card palettes + ability makers
+  trump.ts         builds a Trump Cards deck from a theme + a stat table
+  index.ts         universe registry (locked ones show as "coming soon")
 src/ui/            React + framer-motion screens and components
   sfx.ts           synthesised sound effects (Web Audio, no files)
 scripts/fetch_wwe_images.py   downloads + crops WWE.com promo cutouts into public/cards/wwe
+scripts/fetch_anime_images.py downloads AniList character portraits into public/cards/anime
 ```
 
 ## Adding a theme
