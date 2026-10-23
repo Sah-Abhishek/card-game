@@ -59,7 +59,7 @@ export function ShowdownSetup({ nav, mode }: { nav: Nav; mode: DeckMode }) {
           ))}
         </div>
         <p className="sd-setup-note">
-          {players} players · {per} cards each{pot ? ` · ${pot} to the pot` : ''}. Winner of each round calls the next stat. You can only play your top card. Ties go to the pot. {def.goal}
+          {players} players · {per} cards each{pot ? ` · ${pot} to the pot` : ''}. {def.rules}
         </p>
         <button
           className="btn btn-gold sd-start"

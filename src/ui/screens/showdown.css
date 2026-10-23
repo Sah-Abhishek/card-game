@@ -506,3 +506,120 @@
   font-weight: 700;
   opacity: 0.75;
 }
+
+/* won pile: beside the deck, shuffled in when the deck runs out */
+.sd-won {
+  position: absolute;
+  left: calc(100% + 6px);
+  bottom: 0;
+  width: 58%;
+  aspect-ratio: 750 / 1050;
+  display: grid;
+  place-items: end center;
+  border-radius: 6px;
+}
+
+.sd-won > .card-root {
+  position: absolute;
+  inset: 0;
+  transform: rotate(8deg);
+  filter: brightness(0.8);
+}
+
+.sd-won.empty {
+  border: 1.5px dashed rgba(247, 224, 138, 0.35);
+}
+
+.sd-won .pill {
+  position: relative;
+  z-index: 1;
+  margin-bottom: -8px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+/* compare every stat after a reveal */
+.sd-compare .sd-sheet-head {
+  align-items: center;
+}
+
+.sd-next {
+  margin-left: auto;
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.sd-compare-scroll {
+  overflow-x: auto;
+}
+
+.sd-compare table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 3px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.sd-compare thead th {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--gold-text);
+  padding: 0 4px;
+}
+
+.sd-compare tbody th {
+  text-align: left;
+  padding: 4px 8px;
+  max-width: 130px;
+  border-radius: 8px 0 0 8px;
+}
+
+.sd-compare tbody th b {
+  display: block;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sd-compare tbody th small {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+}
+
+.sd-compare tbody tr > * {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sd-compare tbody td:last-child {
+  border-radius: 0 8px 8px 0;
+}
+
+.sd-compare tbody tr.me > * {
+  background: rgba(176, 0, 26, 0.25);
+}
+
+.sd-compare tbody tr.win > * {
+  box-shadow: inset 0 1px 0 #e9c766, inset 0 -1px 0 #e9c766;
+}
+
+.sd-compare td {
+  padding: 4px;
+  font-family: var(--font-display);
+  font-size: 17px;
+}
+
+.sd-compare td.best {
+  color: #ffd23d;
+}
+
+.sd-compare .called {
+  background: rgba(233, 199, 102, 0.18) !important;
+}
+
+.sd-compare thead th.called {
+  color: #fff;
+}

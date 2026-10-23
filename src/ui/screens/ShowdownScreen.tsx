@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import type { Nav } from '../../App';
-import type { StatKey } from '../../engine/types';
+import type { StatKey, ThemeDef } from '../../engine/types';
 import { Rng, randomSeed } from '../../engine/rng';
-import { type ShowdownState, createShowdown, inGame, playRound } from '../../engine/showdown';
+import { type ShowdownResult, type ShowdownState, createShowdown, held, inGame, playRound } from '../../engine/showdown';
 import { aiShowdownCall } from '../../engine/ai';
 import { Arena, MuteButton } from '../components/Arena';
 import { CardBack, GameCard } from '../components/Card';
@@ -52,11 +52,13 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
       theme,
       [{ name: 'YOU', human: true }, ...names.map((name) => ({ name, human: false }))],
       rng.next() * 2 ** 32,
-      def.maxRounds,
+      { maxRounds: def.maxRounds, wonPile: def.wonPile },
     );
   });
   const n = game.players.length;
   const seats = useMemo(() => seatPositions(n), [n]);
+  /** where a seat's won pile sits, just right of its deck */
+  const wonPos = (p: number): Pos => ({ x: seats[p].x + (p === 0 ? 9 : 6), y: seats[p].y + 3 });
   const [phase, setPhase] = useState<Phase>('shuffle');
   const [dealt, setDealt] = useState<number[]>(() => game.players.map(() => 0));
   const [flights, setFlights] = useState<Flight[]>([]);
@@ -80,6 +82,32 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
       alive.current = false;
     };
   }, []);
+  // pause between rounds: the round resolver waits here until NEXT is pressed
+  const [waiting, setWaiting] = useState(false);
+  const nextRef = useRef<(() => void) | null>(null);
+  const waitForNext = () =>
+    new Promise<void>((res) => {
+      nextRef.current = res;
+      setWaiting(true);
+    });
+  const goNext = () => {
+    if (!nextRef.current) return;
+    sfx.select();
+    setWaiting(false);
+    nextRef.current();
+    nextRef.current = null;
+  };
+  useEffect(() => {
+    if (!waiting) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        goNext();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [waiting]);
   const sleep = (ms: number) =>
     new Promise<void>((res, rej) => setTimeout(() => (alive.current ? res() : rej(new Error('unmounted'))), ms / speedRef.current));
 
@@ -161,8 +189,9 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
       }
       await sleep(1500);
       setBanner(null);
+      if (def.pauseAfterReveal && r.revealed.some((x) => x.player === 0)) await waitForNext();
       setPhase('collect');
-      const dest = r.winner === null ? CENTER : seats[r.winner];
+      const dest = r.winner === null ? CENTER : def.wonPile ? wonPos(r.winner) : seats[r.winner];
       r.revealed.forEach((x, i) => {
         fly(seats[x.player], dest, i * 70, x.cardId);
         sfx.deal(i * 0.07);
@@ -176,6 +205,12 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
       setCalled(null);
       setDecided(false);
       setDealt(after.players.map((p) => p.deck.length));
+      for (const p of r.refilled) {
+        setBanner({ text: `${after.players[p].human ? 'YOUR' : `${after.players[p].name}'S`} DECK IS EMPTY`, sub: `${after.players[p].deck.length} WON CARDS SHUFFLED IN`, tone: 'gold' });
+        sfx.riffle(0.5);
+        await sleep(1300);
+        setBanner(null);
+      }
       for (const e of r.eliminated) {
         setBanner({ text: `${after.players[e].human ? 'YOU ARE' : `${after.players[e].name} IS`} ELIMINATED`, tone: 'red' });
         sfx.bell(1);
@@ -258,7 +293,9 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
 
         {game.players.map((p, i) => {
           const pos = seats[i];
-          const count = phase === 'deal' || phase === 'shuffle' ? dealt[i] : p.deck.length;
+          const dealing = phase === 'deal' || phase === 'shuffle';
+          const count = dealing ? dealt[i] : p.deck.length;
+          const total = dealing ? dealt[i] : held(p);
           const rv = revealOf(i);
           const out = !live.includes(i) && phase !== 'shuffle' && phase !== 'deal';
           const isWinner = decided && r?.winner === i;
@@ -270,8 +307,8 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
               <div className="sd-tag">
                 <i style={{ background: `linear-gradient(135deg, ${COLORS[i % COLORS.length]}, #111)` }} />
                 <b>{p.human ? 'YOU' : p.name}</b>
-                <motion.span key={count} initial={{ scale: 1.5 }} animate={{ scale: 1 }}>
-                  {count}
+                <motion.span key={total} initial={{ scale: 1.5 }} animate={{ scale: 1 }} title="Cards held (deck + won pile)">
+                  {total}
                 </motion.span>
                 {game.caller === i && phase === 'call' && <em>CALLER</em>}
               </div>
@@ -290,6 +327,14 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
                   </motion.div>
                 )}
                 {out && <div className="sd-out display">OUT</div>}
+                {def.wonPile && !dealing && (
+                  <div className={`sd-won ${p.won.length ? '' : 'empty'}`} title="Won pile — shuffled in when the deck runs out">
+                    {p.won.length > 0 && <Back />}
+                    <motion.span key={p.won.length} className="pill" initial={{ scale: 1.4 }} animate={{ scale: 1 }}>
+                      WON {p.won.length}
+                    </motion.span>
+                  </div>
+                )}
               </div>
               <AnimatePresence>
                 {rv && flipped.has(i) && phase !== 'collect' && (
@@ -319,7 +364,9 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
       </div>
 
       <footer className="sd-sheet">
-        {myTurn ? (
+        {waiting && r ? (
+          <Compare theme={theme} game={game} result={r} onNext={goNext} />
+        ) : myTurn ? (
           <>
             <div className="sd-sheet-head">
               <b className="display">YOUR CALL</b>
@@ -350,7 +397,7 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
             {(phase === 'reveal' || phase === 'collect') && !decided && 'CARDS ON THE TABLE…'}
             {(phase === 'reveal' || phase === 'collect') && decided && (r?.winner === 0 ? 'YOU TAKE THE ROUND!' : r?.winner === null ? 'TIE — CARDS TO THE POT' : `${r ? game.players[r.winner!]?.name ?? '' : ''} TAKES THE ROUND`)}
             {phase === 'over' && 'GAME OVER'}
-            {me.deck.length === 0 && phase === 'call' && ' · YOU’RE OUT — WATCHING'}
+            {!held(me) && phase === 'call' && ' · YOU’RE OUT — WATCHING'}
           </div>
         )}
       </footer>
@@ -366,12 +413,12 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
               <b className={`display ${game.winner === 0 ? 'gold-text' : ''}`}>{game.winner === 0 ? 'YOU WIN!' : `${game.players[game.winner ?? 0].name} WINS`}</b>
               <div className="sd-standings">
                 {[...game.players.keys()]
-                  .sort((a, b) => game.players[b].deck.length - game.players[a].deck.length)
+                  .sort((a, b) => held(game.players[b]) - held(game.players[a]))
                   .map((i, rank) => (
                     <div key={i} className={i === 0 ? 'me' : ''}>
                       <span className="display">{rank + 1}</span>
                       <b>{game.players[i].human ? 'YOU' : game.players[i].name}</b>
-                      <em>{game.players[i].deck.length} cards</em>
+                      <em>{held(game.players[i])} cards</em>
                     </div>
                   ))}
               </div>
@@ -387,6 +434,54 @@ export function ShowdownScreen({ nav, mode, opponents }: { nav: Nav; mode: DeckM
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+/** Every stat of every card on the table, side by side, until NEXT is pressed. */
+function Compare({ theme, game, result, onNext }: { theme: ThemeDef; game: ShowdownState; result: ShowdownResult; onNext: () => void }) {
+  const rows = result.revealed.map((x) => ({ ...x, card: cardById(theme, x.cardId) }));
+  const best = Object.fromEntries(theme.stats.map((s) => [s.key, Math.max(...rows.map((x) => x.card.stats[s.key]))]));
+  const st = theme.stats.find((s) => s.key === result.stat)!;
+  const who = result.winner === null ? 'TIE — CARDS TO THE POT' : result.winner === 0 ? 'YOU WIN THE ROUND' : `${game.players[result.winner].name} WINS THE ROUND`;
+  return (
+    <div className="sd-compare">
+      <div className="sd-sheet-head">
+        <b className="display">{st.label}</b>
+        <small>{who}</small>
+        <button className="btn btn-gold sd-next" onClick={onNext} autoFocus>
+          Next round ▸
+        </button>
+      </div>
+      <div className="sd-compare-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th />
+              {theme.stats.map((s) => (
+                <th key={s.key} className={s.key === result.stat ? 'called' : ''}>
+                  {s.short}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((x) => (
+              <tr key={x.player} className={`${x.player === 0 ? 'me' : ''} ${result.winner === x.player ? 'win' : ''}`}>
+                <th>
+                  <b>{x.card.name}</b>
+                  <small>{x.player === 0 ? 'YOU' : game.players[x.player].name}</small>
+                </th>
+                {theme.stats.map((s) => (
+                  <td key={s.key} className={`${s.key === result.stat ? 'called' : ''} ${x.card.stats[s.key] === best[s.key] ? 'best' : ''}`}>
+                    {x.card.stats[s.key]}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

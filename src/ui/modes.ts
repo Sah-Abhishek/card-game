@@ -13,7 +13,11 @@ export interface DeckModeDef {
   defaultOpponents: number;
   /** safety cap; at the cap whoever holds the most cards wins */
   maxRounds: number;
-  goal: string;
+  /** won cards go to a side pile, shuffled in once the deck runs out */
+  wonPile: boolean;
+  /** stop after every reveal so players can compare all stats */
+  pauseAfterReveal: boolean;
+  rules: string;
 }
 
 export const DECK_MODES: Record<DeckMode, DeckModeDef> = {
@@ -24,7 +28,9 @@ export const DECK_MODES: Record<DeckMode, DeckModeDef> = {
     opponents: [1, 2, 3, 4, 5],
     defaultOpponents: 3,
     maxRounds: 60,
-    goal: 'Last one holding cards wins.',
+    wonPile: false,
+    pauseAfterReveal: false,
+    rules: 'Winner of each round calls the next stat. Ties go to the pot. Last one holding cards wins.',
   },
   trump: {
     title: 'TRUMP CARDS',
@@ -33,6 +39,9 @@ export const DECK_MODES: Record<DeckMode, DeckModeDef> = {
     opponents: [1, 2, 3],
     defaultOpponents: 1,
     maxRounds: 1000,
-    goal: 'Win every card in the deck to win the game.',
+    wonPile: true,
+    pauseAfterReveal: true,
+    rules:
+      'You can only play your top card. The winner calls the next stat and puts the cards on their won pile, which is shuffled in as a new deck once their deck runs out. Ties go to the pot. Win all 52 cards to win.',
   },
 };

@@ -5,6 +5,7 @@ export interface ShowdownPlayer {
   name: string;
   human: boolean;
   deck: string[]; // index 0 is the top card
+  won: string[]; // won cards, shuffled in as the new deck once `deck` runs out
 }
 
 export interface ShowdownResult {
@@ -16,6 +17,7 @@ export interface ShowdownResult {
   winner: number | null; // null = tie, cards go to the pot
   taken: string[]; // cards the winner collected (incl. pot)
   eliminated: number[];
+  refilled: number[]; // players whose won pile became their deck this round
 }
 
 export interface ShowdownState {
@@ -24,6 +26,8 @@ export interface ShowdownState {
   caller: number;
   round: number;
   maxRounds: number;
+  /** winners keep a separate won pile instead of tucking cards under their deck */
+  wonPile: boolean;
   seed: number;
   /** order the deck was dealt in, for the deal animation */
   dealOrder: { player: number; cardId: string }[];
@@ -36,7 +40,7 @@ export function createShowdown(
   theme: ThemeDef,
   players: { name: string; human: boolean }[],
   seed: number,
-  maxRounds = 60,
+  { maxRounds = 60, wonPile = false }: { maxRounds?: number; wonPile?: boolean } = {},
 ): ShowdownState {
   const rng = new Rng(seed);
   const deck = rng.shuffle(theme.cards.map((c) => c.id));
@@ -49,11 +53,12 @@ export function createShowdown(
     dealOrder.push({ player, cardId: deck[i] });
   }
   return {
-    players: players.map((p, i) => ({ ...p, deck: hands[i] })),
+    players: players.map((p, i) => ({ ...p, deck: hands[i], won: [] })),
     pot: deck.slice(per * players.length), // leftovers go to the first round's winner
     caller: rng.int(players.length),
     round: 1,
     maxRounds,
+    wonPile,
     seed: rng.seed,
     dealOrder,
     last: null,
@@ -62,7 +67,10 @@ export function createShowdown(
   };
 }
 
-export const inGame = (s: ShowdownState) => s.players.map((p, i) => (p.deck.length ? i : -1)).filter((i) => i >= 0);
+/** every card a player owns: deck plus won pile */
+export const held = (p: ShowdownPlayer) => p.deck.length + p.won.length;
+
+export const inGame = (s: ShowdownState) => s.players.map((p, i) => (held(p) ? i : -1)).filter((i) => i >= 0);
 
 export function playRound(theme: ThemeDef, state: ShowdownState, stat: StatKey): ShowdownState {
   if (state.over) throw new Error('game over');
@@ -83,25 +91,35 @@ export function playRound(theme: ThemeDef, state: ShowdownState, stat: StatKey):
     // winner's own card goes back first, then the rest in random order
     const others = rng.shuffle(revealed.filter((r) => r.player !== winner).map((r) => r.cardId));
     taken = [leaders[0].cardId, ...others, ...s.pot];
-    s.players[winner].deck.push(...taken);
+    (s.wonPile ? s.players[winner].won : s.players[winner].deck).push(...taken);
     s.pot = [];
     s.caller = winner;
   } else {
     s.pot.push(...revealed.map((r) => r.cardId));
   }
-  const eliminated = live.filter((i) => s.players[i].deck.length === 0);
+  // out of deck: the won pile is shuffled and becomes the new deck
+  const refilled: number[] = [];
+  for (const i of live) {
+    const p = s.players[i];
+    if (!p.deck.length && p.won.length) {
+      p.deck = rng.shuffle(p.won);
+      p.won = [];
+      refilled.push(i);
+    }
+  }
+  const eliminated = live.filter((i) => !held(s.players[i]));
   // a caller knocked out on a tie hands the call to the next player still in
-  if (!s.players[s.caller].deck.length) {
+  if (!held(s.players[s.caller])) {
     const left = inGame(s);
     s.caller = left.find((i) => i > s.caller) ?? left[0] ?? s.caller;
   }
-  s.last = { round: s.round, caller: state.caller, stat, revealed, winner, taken, eliminated };
+  s.last = { round: s.round, caller: state.caller, stat, revealed, winner, taken, eliminated, refilled };
   s.seed = rng.seed;
   const left = inGame(s);
   if (left.length <= 1 || s.round >= s.maxRounds) {
     s.over = true;
     // most cards wins; the pot is split by nobody
-    s.winner = left.length ? left.reduce((a, b) => (s.players[b].deck.length > s.players[a].deck.length ? b : a)) : null;
+    s.winner = left.length ? left.reduce((a, b) => (held(s.players[b]) > held(s.players[a]) ? b : a)) : null;
   } else {
     s.round++;
   }

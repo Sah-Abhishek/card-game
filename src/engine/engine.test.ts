@@ -5,7 +5,7 @@ import { Rng } from './rng';
 import { autoRoster, checkRoster } from './roster';
 import { call, createMatch, finisher, pick, type MatchState, type Side, other } from './match';
 import { aiChooseAction, aiPickSuperstar, aiShowdownCall } from './ai';
-import { createShowdown, inGame, playRound } from './showdown';
+import { createShowdown, held, inGame, playRound } from './showdown';
 
 const byId = (id: string) => T.cards.find((c) => c.id === id)!;
 
@@ -17,11 +17,11 @@ function duel(home: string, away: string, seed = 1): MatchState {
 }
 
 describe('theme data', () => {
-  it('has 30 cards with derived OVR and rarity', () => {
-    expect(T.cards).toHaveLength(30);
+  it('has 52 cards with derived OVR and rarity', () => {
+    expect(T.cards).toHaveLength(52);
     expect(byId('the-rock').ovr).toBe(88);
     expect(byId('the-rock').rarity).toBe('legendary');
-    expect(new Set(T.cards.map((c) => c.id)).size).toBe(30);
+    expect(new Set(T.cards.map((c) => c.id)).size).toBe(52);
   });
 
   it('auto rosters always respect the cap and legendary limit', () => {
@@ -164,11 +164,11 @@ describe('simulated games', () => {
       for (let seed = 1; seed <= 60; seed++) {
         const rng = new Rng(seed);
         let s = createShowdown(T, Array.from({ length: n }, (_, i) => ({ name: `P${i}`, human: i === 0 })), seed);
-        const total = () => s.players.reduce((a, p) => a + p.deck.length, 0) + s.pot.length;
-        expect(total()).toBe(30);
+        const total = () => s.players.reduce((a, p) => a + held(p), 0) + s.pot.length;
+        expect(total()).toBe(T.cards.length);
         while (!s.over) {
           s = playRound(T, s, aiShowdownCall(T, s, s.caller, rng));
-          expect(total()).toBe(30);
+          expect(total()).toBe(T.cards.length);
           expect(s.players[s.caller].deck.length > 0 || s.over).toBe(true);
         }
         expect(s.winner === null || inGame(s).includes(s.winner)).toBe(true);
@@ -195,17 +195,19 @@ describe('trump cards (52-card deck)', () => {
     for (let n = 2; n <= 4; n++) {
       for (let seed = 1; seed <= 60; seed++) {
         const rng = new Rng(seed);
-        let s = createShowdown(W, Array.from({ length: n }, (_, i) => ({ name: `P${i}`, human: i === 0 })), seed, 1000);
+        let s = createShowdown(W, Array.from({ length: n }, (_, i) => ({ name: `P${i}`, human: i === 0 })), seed, { maxRounds: 1000, wonPile: true });
         const hands = s.players.map((p) => p.deck.length);
         expect(new Set(hands).size).toBe(1);
         expect(s.pot).toHaveLength(52 % n);
-        const total = () => s.players.reduce((a, p) => a + p.deck.length, 0) + s.pot.length;
+        const total = () => s.players.reduce((a, p) => a + held(p), 0) + s.pot.length;
         while (!s.over) {
           s = playRound(W, s, aiShowdownCall(W, s, s.caller, rng));
           expect(total()).toBe(52);
+          // anyone still in always has a top card to play
+          for (const i of inGame(s)) expect(s.players[i].deck.length).toBeGreaterThan(0);
         }
         games++;
-        if (s.winner !== null && s.players[s.winner].deck.length === 52) sweeps++;
+        if (s.winner !== null && held(s.players[s.winner]) === 52) sweeps++;
       }
     }
     expect(sweeps / games).toBeGreaterThan(0.9);

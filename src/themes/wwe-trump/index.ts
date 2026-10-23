@@ -1,4 +1,4 @@
-import type { CardDef, CardPalette, StatKey, ThemeDef } from '../../engine/types';
+import type { CardDef, StatKey, ThemeDef } from '../../engine/types';
 import { rarityOf } from '../../engine/roster';
 import { wweTheme } from '../wwe';
 
@@ -64,57 +64,10 @@ const BODY: Record<string, Body> = {
   'rob-van-dam': [185, 107, 44, 17, 8, 9, 89],
 };
 
-const P: Record<string, CardPalette> = {
-  red: { glow: '#8a0d16', mid: '#2a0408', dark: '#060102', plate: '#c8001f', plateDark: '#5a0010' },
-  purple: { glow: '#4a1a7a', mid: '#1a0630', dark: '#05010a', plate: '#6a22c0', plateDark: '#1a0630' },
-  black: { glow: '#4a4a52', mid: '#16161a', dark: '#050505', plate: '#4a4a52', plateDark: '#0a0a0a' },
-  green: { glow: '#1a6a2a', mid: '#0a2a10', dark: '#020803', plate: '#1fa040', plateDark: '#0a3a14' },
-  blue: { glow: '#1a3a8a', mid: '#081a40', dark: '#02050f', plate: '#2a6ae0', plateDark: '#081a40' },
-  gold: { glow: '#7a5a10', mid: '#2a1c04', dark: '#0a0702', plate: '#c99a35', plateDark: '#4a3508' },
-  orange: { glow: '#8a3a0a', mid: '#2a1004', dark: '#0a0401', plate: '#e0661a', plateDark: '#5a2008' },
-  teal: { glow: '#0d5a5a', mid: '#042222', dark: '#010606', plate: '#12a3a3', plateDark: '#063d3d' },
-  silver: { glow: '#5a6070', mid: '#1c2028', dark: '#06070a', plate: '#8a95ab', plateDark: '#262b36' },
-  yellow: { glow: '#8a7a0a', mid: '#2a2404', dark: '#0a0901', plate: '#e8c21a', plateDark: '#5a4a08' },
-};
-
-type Extra = Pick<CardDef, 'id' | 'name' | 'nickname' | 'finisher' | 'palette'> & { bio: [string, string, string] };
-
-/** Superstars that only appear in the 52-card trump deck. */
-const EXTRA: Extra[] = [
-  { id: 'big-show', name: 'BIG SHOW', nickname: "THE WORLD'S LARGEST ATHLETE", finisher: 'KNOCKOUT PUNCH', palette: P.black, bio: [`7'0"`, '383 LBS', 'TAMPA, FL'] },
-  { id: 'great-khali', name: 'THE GREAT KHALI', nickname: 'THE PUNJABI NIGHTMARE', finisher: 'PUNJABI PLUNGE', palette: P.orange, bio: [`7'1"`, '347 LBS', 'PUNJAB, INDIA'] },
-  { id: 'mark-henry', name: 'MARK HENRY', nickname: "THE WORLD'S STRONGEST MAN", finisher: "WORLD'S STRONGEST SLAM", palette: P.purple, bio: [`6'4"`, '360 LBS', 'SILSBEE, TX'] },
-  { id: 'goldberg', name: 'GOLDBERG', nickname: "WHO'S NEXT?", finisher: 'JACKHAMMER', palette: P.black, bio: [`6'4"`, '285 LBS', 'TULSA, OK'] },
-  { id: 'bobby-lashley', name: 'BOBBY LASHLEY', nickname: 'THE ALL MIGHTY', finisher: 'HURT LOCK', palette: P.silver, bio: [`6'3"`, '273 LBS', 'JUNCTION CITY, KS'] },
-  { id: 'drew-mcintyre', name: 'DREW McINTYRE', nickname: 'THE SCOTTISH WARRIOR', finisher: 'CLAYMORE', palette: P.blue, bio: [`6'5"`, '265 LBS', 'AYR, SCOTLAND'] },
-  { id: 'braun-strowman', name: 'BRAUN STROWMAN', nickname: 'THE MONSTER AMONG MEN', finisher: 'RUNNING POWERSLAM', palette: P.black, bio: [`6'8"`, '385 LBS', 'SHERRILLS FORD, NC'] },
-  { id: 'sheamus', name: 'SHEAMUS', nickname: 'THE CELTIC WARRIOR', finisher: 'BROGUE KICK', palette: P.green, bio: [`6'4"`, '267 LBS', 'DUBLIN, IRELAND'] },
-  { id: 'kevin-owens', name: 'KEVIN OWENS', nickname: 'THE PRIZEFIGHTER', finisher: 'STUNNER', palette: P.red, bio: [`6'0"`, '266 LBS', 'MARIEVILLE, QC'] },
-  { id: 'sami-zayn', name: 'SAMI ZAYN', nickname: 'THE UNDERDOG FROM THE UNDERGROUND', finisher: 'HELLUVA KICK', palette: P.teal, bio: [`6'1"`, '212 LBS', 'MONTREAL, QC'] },
-  { id: 'gunther', name: 'GUNTHER', nickname: 'THE RING GENERAL', finisher: 'POWERBOMB', palette: P.gold, bio: [`6'4"`, '275 LBS', 'VIENNA, AUSTRIA'] },
-  { id: 'finn-balor', name: 'FINN BÁLOR', nickname: 'THE PRINCE', finisher: 'COUP DE GRÂCE', palette: P.red, bio: [`5'11"`, '190 LBS', 'BRAY, IRELAND'] },
-  { id: 'the-miz', name: 'THE MIZ', nickname: 'THE A-LISTER', finisher: 'SKULL-CRUSHING FINALE', palette: P.yellow, bio: [`6'1"`, '221 LBS', 'CLEVELAND, OH'] },
-  { id: 'jinder-mahal', name: 'JINDER MAHAL', nickname: 'THE MODERN DAY MAHARAJA', finisher: 'KHALLAS', palette: P.gold, bio: [`6'5"`, '250 LBS', 'PUNJAB, INDIA'] },
-  { id: 'ultimate-warrior', name: 'ULTIMATE WARRIOR', nickname: 'THE WARRIOR', finisher: 'WARRIOR SPLASH', palette: P.orange, bio: [`6'2"`, '280 LBS', 'PARTS UNKNOWN'] },
-  { id: 'daniel-bryan', name: 'DANIEL BRYAN', nickname: 'THE AMERICAN DRAGON', finisher: 'YES! LOCK', palette: P.green, bio: [`5'8"`, '210 LBS', 'ABERDEEN, WA'] },
-  { id: 'jey-uso', name: 'JEY USO', nickname: 'MAIN EVENT JEY', finisher: 'USO SPLASH', palette: P.yellow, bio: [`6'2"`, '240 LBS', 'SAN FRANCISCO, CA'] },
-  { id: 'solo-sikoa', name: 'SOLO SIKOA', nickname: 'THE STREET CHAMPION', finisher: 'SAMOAN SPIKE', palette: P.black, bio: [`6'2"`, '265 LBS', 'SAN FRANCISCO, CA'] },
-  { id: 'la-knight', name: 'LA KNIGHT', nickname: 'THE MEGASTAR', finisher: 'BFT', palette: P.yellow, bio: [`6'1"`, '240 LBS', 'HAGERSTOWN, MD'] },
-  { id: 'bron-breakker', name: 'BRON BREAKKER', nickname: 'THE STEINER STEAMROLLER', finisher: 'SPEAR', palette: P.red, bio: [`6'0"`, '235 LBS', 'ATLANTA, GA'] },
-  { id: 'damian-priest', name: 'DAMIAN PRIEST', nickname: 'THE ARCHER OF INFAMY', finisher: 'SOUTH OF HEAVEN', palette: P.purple, bio: [`6'5"`, '250 LBS', 'NEW YORK, NY'] },
-  { id: 'rob-van-dam', name: 'ROB VAN DAM', nickname: 'MR. MONDAY NIGHT', finisher: 'FIVE-STAR FROG SPLASH', palette: P.teal, bio: [`6'0"`, '235 LBS', 'BATTLE CREEK, MI'] },
-];
-
 const KEYS: StatKey[] = ['hgt', 'wgt', 'chest', 'bicep', 'titles', 'yrs', 'fin'];
 
-const base = [
-  ...wweTheme.cards.map(({ id, name, nickname, finisher, palette, image, bio }) => ({ id, name, nickname, finisher, palette, image, bio })),
-  ...EXTRA.map(({ bio, ...c }) => ({
-    ...c,
-    image: `${import.meta.env.BASE_URL}cards/wwe/${c.id}.webp`,
-    bio: { HEIGHT: bio[0], WEIGHT: bio[1], HOMETOWN: bio[2] },
-  })),
-];
+// same 52 superstars as the main set, re-rated on body stats
+const base = wweTheme.cards.map(({ id, name, nickname, finisher, palette, image, bio }) => ({ id, name, nickname, finisher, palette, image, bio }));
 
 const statsOf = (id: string) => Object.fromEntries(KEYS.map((k, i) => [k, BODY[id][i]]));
 
